@@ -27,6 +27,12 @@ If no GitHub account can be found after exhaustive searching, return:
 NOT_FOUND: <brief reason>
 ```
 
+If the company name is ambiguous (multiple companies share the name), return:
+
+```
+AMBIGUOUS: <list the options with their GitHub usernames>
+```
+
 ## Search Strategy: Adaptive Approach
 
 Start with standard checks. If confidence is high, return immediately. If confidence is low, escalate to exhaustive searching.
@@ -132,6 +138,11 @@ Before returning any result:
 
 ## Edge Cases to Handle
 
+- **Ambiguous company names**: Many company names are shared (e.g., "Polar" could be Polar Electro, Polar software platform, or Polar Signals). Look for context clues in the user's query:
+  - Industry hints: "Polar fitness" → Polar Electro
+  - Product hints: "Polar heart rate sensor" → Polar Electro
+  - Domain hints: "Polar (polar.com)" → Polar Electro
+  - If no context is provided and multiple valid matches exist, list them and ask for clarification
 - **Empty/placeholder accounts**: Some companies register GitHub usernames but never use them publicly. An account with zero public repositories is NOT a valid result — return NOT_FOUND with a note that the account exists but has no public content.
 - **Acquired companies**: Search for both current and previous company names (e.g., company was acquired, may still use old GitHub name)
 - **Rebranded companies**: Check for both old and new brand names
@@ -154,6 +165,14 @@ Before returning any result:
 **Input:** `Some Random Startup XYZ`
 **Process:** All searches exhausted, no verifiable GitHub presence found
 **Output:** `NOT_FOUND: No verifiable GitHub account found after exhaustive search`
+
+**Input:** `Polar fitness watches`
+**Process:** Context clue "fitness watches" → search confirms Polar Electro (polar.com) → GitHub is `polarofficial` with verified domain
+**Output:** `polarofficial`
+
+**Input:** `Polar` (no context)
+**Process:** Multiple companies named Polar found → ambiguous
+**Output:** `AMBIGUOUS: Multiple companies named Polar - Polar Electro (polarofficial), Polar software (polarsource), Polar Signals (polarsignals). Please specify which one.`
 
 ## Important Notes
 
