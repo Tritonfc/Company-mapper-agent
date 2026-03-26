@@ -1,0 +1,23 @@
+{
+  "skill_name": "find-company-github",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Find Anthropic's GitHub",
+      "expected_output": "anthropics",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "What's Oura's GitHub account?",
+      "expected_output": "jouzen",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Find the GitHub for Supabase",
+      "expected_output": "supabase",
+      "files": []
+    }
+  ]
+}
