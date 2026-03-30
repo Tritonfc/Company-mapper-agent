@@ -66,19 +66,28 @@ class GitHubClient:
 
     # Step 3: Filter repositories by language
     # GET /search/repositories?q=org:{org}+language:{lang}
-    def search_repos_by_language(self, org: str, language: str) -> dict:
+    def search_repos_by_language(self, org: str, language: str | list[str]) -> dict:
         """
-        Searches for repositories in an org that use a specific programming language.
+        Searches for repositories in an org that use specific programming language(s).
         Returns matching repos with their details.
+
+        Args:
+            org: GitHub organization name
+            language: Single language or list of languages (OR logic - matches any)
 
         Returns dict with:
             - total_count: number of matching repos
             - items: list of repo objects
         """
+        if isinstance(language, list):
+            languages_query = " ".join(f"language:{lang}" for lang in language)
+        else:
+            languages_query = f"language:{language}"
+
         try:
             response = self.client.get(
                 "/search/repositories",
-                params={"q": f"org:{org} language:{language}"}
+                params={"q": f"org:{org} {languages_query}"}
             )
             response.raise_for_status()
             return response.json()
@@ -87,20 +96,29 @@ class GitHubClient:
 
     # Step 4: Keyword search in repositories
     # GET /search/repositories?q=org:{org}+{keyword}
-    def search_repos_by_keyword(self, org: str, keyword: str) -> dict:
+    def search_repos_by_keyword(self, org: str, keyword: str | list[str]) -> dict:
         """
-        Searches for repositories in an org matching a keyword.
+        Searches for repositories in an org matching keyword(s).
         Searches in repo name, description, and README.
         Useful for finding tools/frameworks that aren't languages (e.g., react-native, docker).
+
+        Args:
+            org: GitHub organization name
+            keyword: Single keyword or list of keywords (OR logic - matches any)
 
         Returns dict with:
             - total_count: number of matching repos
             - items: list of repo objects
         """
+        if isinstance(keyword, list):
+            keywords_query = " ".join(keyword)
+        else:
+            keywords_query = keyword
+
         try:
             response = self.client.get(
                 "/search/repositories",
-                params={"q": f"org:{org} {keyword}"}
+                params={"q": f"org:{org} {keywords_query}"}
             )
             response.raise_for_status()
             return response.json()
