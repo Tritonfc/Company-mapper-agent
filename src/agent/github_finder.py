@@ -2,6 +2,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model # for web search                                                                                 
 from langchain.tools import tool
+from .models import GithubNameResult
 from langchain.agents import create_agent
 from .tools import web_search
 from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
@@ -21,11 +22,12 @@ github_search_agent = create_agent(
     tools=tools,
     system_prompt=  SystemMessage(content=SYSTEM_PROMPT),
      name="github_finder_assistant",
+     response_format= GithubNameResult,
     debug= True
 )
 
 
-def find_company_github(company_name: str):
+def find_company_github(company_name: str, company_url:str):
     """
     Find a company's GitHub account using the find-company-github skill.
 
@@ -37,17 +39,18 @@ def find_company_github(company_name: str):
     """
     messages = [
        
-        HumanMessage(content=f"Find the GitHub for: {company_name}")
+        HumanMessage(content=f"Find the GitHub for: {company_name} and their site is {company_url}")
     ]
 
     response = github_search_agent.invoke({"messages": messages}) # type: ignore
     
-    final_message = response["messages"][-1]                                  
-    return final_message.content  
+    final_message = response["structured_response" ]                                
+    return final_message
    
 
 
 if __name__ == "__main__":
     company = input("Enter company name: ")
-    result = find_company_github(company)
+    company_url = input("Whats their website: ")
+    result = find_company_github(company,  company_url)
     print(result)

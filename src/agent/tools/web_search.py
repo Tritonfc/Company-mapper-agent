@@ -23,13 +23,28 @@ def web_search(query: str) -> str:
         Newline-separated list of URLs from search results
     """
     
-    search = DuckDuckGoSearchResults(output_format="json")
+    search = DuckDuckGoSearchResults(num_results=5, output_format="list").with_retry(
+           retry_if_exception_type=(Exception,),  # Retry on any exception
+    stop_after_attempt=3     
+    )
+    
+    search_run = DuckDuckGoSearchRun().with_retry(
+    retry_if_exception_type=(Exception,),  # Retry on any exception
+    stop_after_attempt=3                   # Retry up to 3 times
+)
     
     results = list(google_search(query, num_results=10))
     duck_results = search.invoke(query)
     if not duck_results:
         return "No results found."
 
-    return "\n".join(duck_results)
+    formatted = []
+    for r in duck_results:
+        title = r.get("title", "")
+        snippet = r.get("snippet", "")
+        link = r.get("link", "")
+        formatted.append(f"{title} - {link}\n{snippet}")
+
+    return "\n\n".join(formatted)
 
 
