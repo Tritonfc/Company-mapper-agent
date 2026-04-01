@@ -2,6 +2,8 @@ import os
 from typing import Optional
 import httpx
 
+from .models import RepoSearchResults, Repository, Commit, Issue, PullRequest
+
 
 class GitHubClient:
     """
@@ -66,7 +68,7 @@ class GitHubClient:
 
     # Step 3: Filter repositories by language
     # GET /search/repositories?q=org:{org}+language:{lang}
-    def search_repos_by_language(self, org: str, language: str | list[str]) -> dict:
+    def search_repos_by_language(self, org: str, language: str | list[str]) -> RepoSearchResults:
         """
         Searches for repositories in an org that use specific programming language(s).
         Returns matching repos with their details.
@@ -74,10 +76,6 @@ class GitHubClient:
         Args:
             org: GitHub organization name
             language: Single language or list of languages (OR logic - matches any)
-
-        Returns dict with:
-            - total_count: number of matching repos
-            - items: list of repo objects
         """
         if isinstance(language, list):
             languages_query = " ".join(f"language:{lang}" for lang in language)
@@ -90,13 +88,13 @@ class GitHubClient:
                 params={"q": f"org:{org} {languages_query}"}
             )
             response.raise_for_status()
-            return response.json()
+            return RepoSearchResults.model_validate(response.json())
         except httpx.HTTPStatusError:
             raise
 
     # Step 4: Keyword search in repositories
     # GET /search/repositories?q=org:{org}+{keyword}
-    def search_repos_by_keyword(self, org: str, keyword: str | list[str]) -> dict:
+    def search_repos_by_keyword(self, org: str, keyword: str | list[str]) -> RepoSearchResults:
         """
         Searches for repositories in an org matching keyword(s).
         Searches in repo name, description, and README.
@@ -105,10 +103,6 @@ class GitHubClient:
         Args:
             org: GitHub organization name
             keyword: Single keyword or list of keywords (OR logic - matches any)
-
-        Returns dict with:
-            - total_count: number of matching repos
-            - items: list of repo objects
         """
         if isinstance(keyword, list):
             keywords_query = " ".join(keyword)
@@ -121,13 +115,13 @@ class GitHubClient:
                 params={"q": f"org:{org} {keywords_query}"}
             )
             response.raise_for_status()
-            return response.json()
+            return RepoSearchResults.model_validate(response.json())
         except httpx.HTTPStatusError:
             raise
 
     # Step 5: Get specific repository details
     # GET /repos/{owner}/{repo}
-    def get_repository(self, owner: str, repo: str) -> Optional[dict]:
+    def get_repository(self, owner: str, repo: str) -> Repository | None:
         """
         Fetches detailed information about a specific repository.
         Returns full repo details including languages, stars, forks, etc.
@@ -136,50 +130,42 @@ class GitHubClient:
         try:
             response = self.client.get(f"/repos/{owner}/{repo}")
             response.raise_for_status()
-            return response.json()
+            return Repository.model_validate(response.json())
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None
             raise
 
     # Step 6: Get repository topics
-    # GET /repos/{owner}/{repo}/topics
-    def get_repo_topics(self, owner: str, repo: str) -> Optional[dict]:
+    def get_repo_topics(self, repo: Repository) -> list[str]:
         """
-        Fetches topics/tags assigned to a repository.
+        Extracts topics from a Repository object.
         Topics are labels like ["machine-learning", "python", "api"].
-        Returns None if repo doesn't exist (404).
-        """
-        try:
-            response = self.client.get(f"/repos/{owner}/{repo}/topics")
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                return None
-            raise
 
-    # Step 7: Check dependency files
-    # GET /repos/{owner}/{repo}/contents/{path}
-    def get_file_contents(self, owner: str, repo: str, path: str) -> Optional[dict]:
+        No API call needed - topics are already included in Repository.
         """
-        Fetches contents of a specific file in a repository.
-        Use for checking dependency files like package.json, requirements.txt, etc.
-        Content is returned base64 encoded.
-        Returns None if file doesn't exist (404).
-        """
-        try:
-            response = self.client.get(f"/repos/{owner}/{repo}/contents/{path}")
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                return None
-            raise
+        return repo.topics
 
-    # Step 8: Check commits
+    # # GET /repos/{owner}/{repo}/contents/{path}
+    # def get_file_contents(self, owner: str, repo: str, path: str) -> Optional[dict]:
+    #     """
+    #     Fetches contents of a specific file in a repository.
+    #     Use for checking dependency files like package.json, requirements.txt, etc.
+    #     Content is returned base64 encoded.
+    #     Returns None if file doesn't exist (404).
+    #     """
+    #     try:
+    #         response = self.client.get(f"/repos/{owner}/{repo}/contents/{path}")
+    #         response.raise_for_status()
+    #         return response.json()
+    #     except httpx.HTTPStatusError as e:
+    #         if e.response.status_code == 404:
+    #             return None
+    #         raise
+
+    # Step 7: Check commits
     # GET /repos/{owner}/{repo}/commits
-    def get_commits(self, owner: str, repo: str, per_page: Optional[int] = 30) -> Optional[list]:
+    def get_commits(self, owner: str, repo: str, per_page: int = 30) -> list[Commit] | None:
         """
         Fetches commit history for a repository.
         Returns recent commits with author, message, and date.
@@ -192,15 +178,15 @@ class GitHubClient:
                 params={"per_page": per_page}
             )
             response.raise_for_status()
-            return response.json()
+            return [Commit.model_validate(c) for c in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None
             raise
 
-    # Step 9: Check issues
+    # Step 8: Check issues
     # GET /repos/{owner}/{repo}/issues
-    def get_issues(self, owner: str, repo: str, state: Optional[str] = "open", per_page: Optional[int] = 30) -> Optional[list]:
+    def get_issues(self, owner: str, repo: str, state: str = "open", per_page: int = 30) -> list[Issue] | None:
         """
         Fetches issues for a repository.
         State can be "open", "closed", or "all".
@@ -212,7 +198,7 @@ class GitHubClient:
                 params={"state": state, "per_page": per_page}
             )
             response.raise_for_status()
-            return response.json()
+            return [Issue.model_validate(i) for i in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None
@@ -220,7 +206,7 @@ class GitHubClient:
 
     # Step 9: Check pull requests
     # GET /repos/{owner}/{repo}/pulls
-    def get_pull_requests(self, owner: str, repo: str, state: Optional[str] = "open", per_page: Optional[int] = 30) -> Optional[list]:
+    def get_pull_requests(self, owner: str, repo: str, state: str = "open", per_page: int = 30) -> list[PullRequest] | None:
         """
         Fetches pull requests for a repository.
         State can be "open", "closed", or "all".
@@ -232,7 +218,7 @@ class GitHubClient:
                 params={"state": state, "per_page": per_page}
             )
             response.raise_for_status()
-            return response.json()
+            return [PullRequest.model_validate(pr) for pr in response.json()]
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None

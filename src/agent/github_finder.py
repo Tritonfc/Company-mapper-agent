@@ -27,7 +27,7 @@ github_search_agent = create_agent(
 )
 
 
-def find_company_github(company_name: str):
+def find_company_github(company_name: str, company_url:str):
     """
     Find a company's GitHub account using the find-company-github skill.
 
@@ -39,7 +39,7 @@ def find_company_github(company_name: str):
     """
     messages = [
        
-        HumanMessage(content=f"Find the GitHub for: {company_name}")
+        HumanMessage(content=f"Find the GitHub for: {company_name} and their site is {company_url}")
     ]
 
     response = github_search_agent.invoke({"messages": messages}) # type: ignore
@@ -51,5 +51,6 @@ def find_company_github(company_name: str):
 
 if __name__ == "__main__":
     company = input("Enter company name: ")
-    result = find_company_github(company)
+    company_url = input("Whats their website: ")
+    result = find_company_github(company,  company_url)
     print(result)
