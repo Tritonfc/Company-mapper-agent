@@ -51,6 +51,7 @@ class TechStackVerifier:
         if result.status != "found":
             return VerificationResult(
                 company=self.context["company"],
+                tech=self.context["tech"],
                 status=result.status,
                 reason=result.reason,
             )
@@ -103,6 +104,7 @@ class TechStackVerifier:
         """Build successful verification result."""
         return VerificationResult(
             company=self.context["company"],
+            tech=self.context["tech"],
             github_org=self.context["org"],
             status="verified",
             signal_strength=SignalStrength.STRONG,
@@ -114,6 +116,7 @@ class TechStackVerifier:
         """Build successful verification result for single repo."""
         return VerificationResult(
             company=self.context["company"],
+            tech=self.context["tech"],
             github_org=self.context["org"],
             status="verified",
             signal_strength=SignalStrength.STRONG,
@@ -125,6 +128,7 @@ class TechStackVerifier:
         """Build failed verification result."""
         return VerificationResult(
             company=self.context["company"],
+            tech=self.context["tech"],
             github_org=self.context["org"],
             status="not_verified",
             signal_strength=SignalStrength.WEAK,
