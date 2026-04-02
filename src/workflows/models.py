@@ -8,6 +8,7 @@ class VerificationResult(BaseModel):
     """Result of tech stack verification."""
 
     company: str
+    tech: list[str] = Field(default_factory=list)
     github_org: str | None = None
     status: str = Field(description="'verified', 'not_verified', 'not_found', 'ambiguous'")
     signal_strength: SignalStrength | None = None
