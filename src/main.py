@@ -3,6 +3,7 @@ from src.github.client import GitHubClient
 from src.workflows.models import VerificationResult
 from src.workflows.people_finder import PeopleFinder
 from src.workflows.tech_stack_verifier import TechStackVerifier
+from src.exa.models import PersonSearchResult
 
 
 def run_verification(companies: list[dict]) -> tuple[list[VerificationResult], list[VerificationResult]]:
@@ -54,7 +55,7 @@ def run_verification(companies: list[dict]) -> tuple[list[VerificationResult], l
     return verified, failed
 
 
-def find_people_for_failed(failed_results: list[VerificationResult]):
+def find_people_for_failed(failed_results: list[VerificationResult])->list[PersonSearchResult]:
     """
     Run people finder for companies that failed verification.
 
@@ -71,29 +72,41 @@ def find_people_for_failed(failed_results: list[VerificationResult]):
         people = finder.run()
 
         print(f"Found {len(people)} people")
+        
+    return people
 
-        if people:
-            df = to_dataframe(people, {
-                "Name": "entities.0.properties.name",
-                "Title": "entities.0.properties.work_history.0.title",
-                "URL": "url",
-            })
-            print(df.to_string())
+      
 
 
 if __name__ == "__main__":
     companies = [
         {"name": "S-ryhma", "tech": ["react native"], "company_url": "s-ryhma.fi"},
-        {"name": "Kesko Oyj Kauppiaat", "tech": ["react native"], "company_url": "kesko.fi"},
-        {"name": "Veikkaus", "tech": ["react native"], "company_url": "veikkaus.fi"},
+        # {"name": "Kesko Oyj Kauppiaat", "tech": ["react native"], "company_url": "kesko.fi"},
+        # {"name": "Veikkaus", "tech": ["react native"], "company_url": "veikkaus.fi"},
         {"name": "Virta", "tech": ["kotlin"], "company_url": "https://www.virta.global"},
     ]
 
     verified, failed = run_verification(companies)
+    if verified:
+        verified_df = to_dataframe(verified,{
+            "Company":"company"
+        }
+            
+        )
+        print(verified_df.head())
 
     print(f"\n\n{'='*50}")
     print(f"SUMMARY: {len(verified)} verified, {len(failed)} failed")
     print('='*50)
 
     if failed:
-        find_people_for_failed(failed)
+       people_in_companies =  find_people_for_failed(failed)
+    
+    if people_in_companies:
+            people_df = to_dataframe(people_in_companies, {
+                "Name": "entities.0.properties.name",
+                "Title": "entities.0.properties.work_history.0.title",
+                "URL": "url",
+            })
+            
+            print(people_df.head())

@@ -7,7 +7,7 @@ from src.exa.models import PersonSearchResult
 class PeopleFinderConfig(BaseModel):
     """Configuration for people finder workflow."""
 
-    max_iterations: int = Field(default=1, description="Maximum search iterations")
+    max_iterations: int = Field(default=3, description="Maximum search iterations")
     results_per_search: int = Field(default=10, description="Results to fetch per iteration")
     min_results: int = Field(default=20, description="Stop early if we reach this many results")
 

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from exa_py import Exa
-
+from pydantic import  ValidationError
 from .models import ExaSearchResponse, PersonSearchResult
 
 load_dotenv()
@@ -45,11 +45,14 @@ def search_people_by_tech_stack(
         type="neural",
         num_results=num_results,
         category="people",
-        include_domains=["linkedin.com", "github.com"],
+       
     )
+    
+    try:
+        ExaSearchResponse.model_validate(response.__dict__)     
+    except ValidationError as exc:
+          print(response.__dict__.keys())                                               
+          print(response.results[0].__dict__.keys())   
+    #> 'arguments_type'
 
-    return ExaSearchResponse.model_validate({                                     
-      "resolvedSearchType": response.resolved_search_type,                      
-      "results": [r.__dict__ for r in response.results],                        
-      "searchTime": response.search_time,                                       
-  })     
+    return ExaSearchResponse.model_validate(response.__dict__)     

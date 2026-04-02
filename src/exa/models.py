@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class DateRange(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """Date range for work/education history."""
 
     from_date: str | None = Field(default=None, alias="from")
@@ -9,6 +10,7 @@ class DateRange(BaseModel):
 
 
 class Company(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """Company info from work history."""
 
     id: str | None = None
@@ -16,6 +18,7 @@ class Company(BaseModel):
 
 
 class Institution(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """Educational institution."""
 
     id: str | None = None
@@ -23,6 +26,7 @@ class Institution(BaseModel):
 
 
 class WorkExperience(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """A single work experience entry."""
 
     title: str
@@ -32,6 +36,7 @@ class WorkExperience(BaseModel):
 
 
 class Education(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """A single education entry."""
 
     degree: str | None = None
@@ -40,17 +45,19 @@ class Education(BaseModel):
 
 
 class PersonProperties(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes= True)  
     """Properties of a person profile."""
 
     name: str
     first_name: str | None = Field(default=None, alias="firstName")
     last_name: str | None = Field(default=None, alias="lastName")
     location: str | None = None
-    work_history: list[WorkExperience] = Field(default_factory=list, alias="workHistory")
-    education_history: list[Education] = Field(default_factory=list, alias="educationHistory")
+    work_history: list[WorkExperience] | None = Field(default=None, alias="workHistory")
+    education_history: list[Education] | None = Field(default=None, alias="educationHistory")
 
 
 class PersonEntity(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """Entity containing person data."""
 
     id: str
@@ -59,19 +66,21 @@ class PersonEntity(BaseModel):
 
 
 class PersonSearchResult(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, from_attributes=True)  
     """A single person result from Exa search."""
 
     id: str
     title: str
     url: str
-    published_date: str | None = Field(default=None, alias="publishedDate")
+    published_date: str | None 
     author: str | None = None
     image: str | None = None
     entities: list[PersonEntity] = Field(default_factory=list)
 
 
 class ExaSearchResponse(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True,from_attributes=True)  
     """Full response from Exa people search."""
-    resolved_search_type: str = Field(alias="resolvedSearchType")
+    resolved_search_type: str 
     results: list[PersonSearchResult]
-    search_time: float = Field(alias="searchTime")
+    search_time: float 
