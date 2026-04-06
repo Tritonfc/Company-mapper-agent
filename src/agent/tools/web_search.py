@@ -1,6 +1,6 @@
 from langchain.tools import tool
 from googlesearch import search as google_search
-from langchain_community.tools import DuckDuckGoSearchRun
+
 from langchain_community.tools import DuckDuckGoSearchResults
 
 
@@ -28,13 +28,17 @@ def web_search(query: str) -> str:
     stop_after_attempt=3     
     )
     
-    search_run = DuckDuckGoSearchRun().with_retry(
-    retry_if_exception_type=(Exception,),  # Retry on any exception
-    stop_after_attempt=3                   # Retry up to 3 times
-)
+#     search_run = DuckDuckGoSearchRun().with_retry(
+#     retry_if_exception_type=(Exception,),  # Retry on any exception
+#     stop_after_attempt=3                   # Retry up to 3 times
+# )
     
-    results = list(google_search(query, num_results=10))
-    duck_results = search.invoke(query)
+#     results = list(google_search(query, num_results=10))
+    try:
+        duck_results = search.invoke(query)
+    except Exception:
+        return "No results found."
+
     if not duck_results:
         return "No results found."
 
