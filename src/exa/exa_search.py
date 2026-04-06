@@ -45,6 +45,7 @@ def search_people_by_tech_stack(
         type="neural",
         num_results=num_results,
         category="people",
+        include_domains=["linkedin.com"]
        
     )
     
