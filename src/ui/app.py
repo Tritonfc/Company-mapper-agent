@@ -15,29 +15,38 @@ st.title("Company Mapper")
 input_method = st.radio("Input Method", ["Manual Entry", "Upload CSV"], horizontal=True)
 
 if input_method == "Manual Entry":
-    st.subheader("Enter Companies")
+    st.subheader("Job Description Parser")
 
-    company_input = st.text_area(
-        "Companies (one per line: company name, tech stack, company url)",
-        placeholder="Virta, kotlin, https://www.virta.global\nWolt, react native, https://wolt.com",
-        height=150,
+    col1, col2 = st.columns(2)
+
+    with col1:
+        company_name = st.text_input(
+            "Company Name",
+            placeholder="e.g., Stripe",
+        )
+
+    with col2:
+        job_role = st.text_input(
+            "Job Role",
+            placeholder="e.g., Senior Backend Engineer",
+        )
+
+    job_description = st.text_area(
+        "Job Description",
+        placeholder="Paste the full job description here...",
+        height=250,
     )
 
-    def parse_input(text: str) -> list[dict]:
+    # Build company dict if required fields are filled
+    if company_name and job_role and job_description:
+        companies = [{
+            "name": company_name,
+            "job_role": job_role,
+            "job_description": job_description,
+            "tech": [],  # Will be populated by LLM parser
+        }]
+    else:
         companies = []
-        for line in text.strip().split("\n"):
-            if not line.strip():
-                continue
-            parts = [p.strip() for p in line.split(",")]
-            if len(parts) >= 3:
-                companies.append({
-                    "name": parts[0],
-                    "tech": [t.strip() for t in parts[1:-1]] if len(parts) > 3 else [parts[1]],
-                    "company_url": parts[-1],
-                })
-        return companies
-
-    companies = parse_input(company_input) if company_input else []
 
 else:
     st.subheader("Upload CSV")
@@ -53,7 +62,10 @@ else:
         companies = []
 
 if companies:
-    st.write(f"**{len(companies)} companies** ready to process")
+    if input_method == "Manual Entry":
+        st.success(f"Ready to process: **{companies[0]['name']}** - {companies[0]['job_role']}")
+    else:
+        st.write(f"**{len(companies)} companies** ready to process")
 
 if st.button("Run", type="primary", disabled=not companies):
     progress_container = st.empty()
