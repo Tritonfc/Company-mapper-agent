@@ -13,4 +13,19 @@ class GithubNameResult(BaseModel):
     reason: str | None = Field(
         default=None,
         description="Explanation when status is 'not_found' or 'ambiguous'"
+    )
+
+
+class JobDescriptionParseResult(BaseModel):
+    """Result of parsing a job description for core technical skills."""
+
+    skills: list[str] = Field(
+        description="List of 1-3 core technical skills extracted from the job description."
+    )
+    status: str = Field(
+        description="One of: 'success', 'insufficient_info'"
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Explanation when status is 'insufficient_info'"
     )     
