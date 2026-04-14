@@ -55,25 +55,25 @@ def run_verification(companies: list[dict]) -> tuple[list[VerificationResult], l
     return verified, failed
 
 
-def find_people_for_failed(failed_results: list[VerificationResult])->list[PersonSearchResult]:
-    """
-    Run people finder for companies that failed verification.
+# def find_people_for_failed(failed_results: list[VerificationResult])->list[PersonSearchResult]:
+#     """
+#     Run people finder for companies that failed verification.
 
-    Args:
-        failed_results: List of failed verification results
-    """
-    for result in failed_results:
-        print(f"\n{'='*50}")
-        print(f"Finding people at: {result.company}")
-        print(f"Tech: {result.tech}")
-        print('='*50)
+#     Args:
+#         failed_results: List of failed verification results
+#     """
+#     for result in failed_results:
+#         print(f"\n{'='*50}")
+#         print(f"Finding people at: {result.company}")
+#         print(f"Tech: {result.tech}")
+#         print('='*50)
 
-        finder = PeopleFinder(result.company, result.tech)
-        people = finder.run()
+#         # finder = PeopleFinder(result.company, result.tech)
+#         # people = finder.run()
 
-        print(f"Found {len(people)} people")
+#         print(f"Found {len(people)} people")
         
-    return people
+#     return people
 
       
 
@@ -99,14 +99,14 @@ if __name__ == "__main__":
     print(f"SUMMARY: {len(verified)} verified, {len(failed)} failed")
     print('='*50)
 
-    if failed:
-       people_in_companies =  find_people_for_failed(failed)
+    # if failed:
+    #    people_in_companies =  find_people_for_failed(failed)
     
-    if people_in_companies:
-            people_df = to_dataframe(people_in_companies, {
-                "Name": "entities.0.properties.name",
-                "Title": "entities.0.properties.work_history.0.title",
-                "URL": "url",
-            })
+    # if people_in_companies:
+    #         people_df = to_dataframe(people_in_companies, {
+    #             "Name": "entities.0.properties.name",
+    #             "Title": "entities.0.properties.work_history.0.title",
+    #             "URL": "url",
+    #         })
             
-            print(people_df.head())
+    #         print(people_df.head())

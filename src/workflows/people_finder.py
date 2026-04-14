@@ -21,12 +21,16 @@ class PeopleFinder:
 
     def __init__(
         self,
-        company: str,
+        companies: list[str],
         tech_stack: str | list[str],
+        job_role:str,
+        location:str,
         config: PeopleFinderConfig | None = None,
     ):
-        self.company = company
+        self.companies = companies
         self.tech_stack = tech_stack
+        self.job_role = job_role
+        self.location = location
         self.config = config or PeopleFinderConfig()
         self.results: list[PersonSearchResult] = []
         self._seen_people: set[str] = set()
@@ -45,14 +49,17 @@ class PeopleFinder:
 
             if len(self.results) >= self.config.min_results:
                 break
+        ranked_names = rank_names()
 
         return self.results
 
     def _search(self) -> list[PersonSearchResult]:
         """Run a single search and accumulate unique results."""
         response = search_people_by_tech_stack(
-            self.company,
+            self.companies,
             self.tech_stack,
+            self.job_role, 
+            self.location,
             self.config.results_per_search,
             self._seen_people
             

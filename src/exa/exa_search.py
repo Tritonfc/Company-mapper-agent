@@ -10,8 +10,10 @@ exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 
 
 def search_people_by_tech_stack(
-    company: str,
+    companies: list[str],
     tech_stack: str | list[str],
+    job_role:str,
+    location:str,
     num_results: int = 10,
     excluded_profiles : set[str]|None = None
 ) -> ExaSearchResponse:
@@ -30,7 +32,7 @@ def search_people_by_tech_stack(
     skills_str = ",".join(skills)
     
     
-    base_query = f"Find me people from {company} who use these skills: {skills_str}"
+    base_query = f"find me {job_role} that worked at multiple companies on the below list that are in {location} that show signs of {skills_str}, {companies}"
     
     if not excluded_profiles:
          query = base_query
