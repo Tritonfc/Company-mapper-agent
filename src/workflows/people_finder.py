@@ -12,7 +12,7 @@ class PeopleFinderConfig(BaseModel):
 
     max_iterations: int = Field(default=3, description="Maximum search iterations")
     results_per_search: int = Field(default=10, description="Results to fetch per iteration")
-    min_results: int = Field(default=20, description="Stop early if we reach this many results")
+    min_results: int = Field(default=30, description="Stop early if we reach this many results")
 
 
 class PeopleFinder:
@@ -67,6 +67,8 @@ class PeopleFinder:
             self._seen_people
             
         )
+        
+     
 
         new_results = []
         for result in response.results:
@@ -86,6 +88,7 @@ class PeopleFinder:
     
     def rank_candidates(self):
         ranked_candidates = []
+        print(len(self.results))
         for candidate in self.results:
             ranked_candidate = score_person(candidate,self.companies)
             ranked_candidates.append(ranked_candidate)

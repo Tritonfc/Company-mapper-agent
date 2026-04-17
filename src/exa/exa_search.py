@@ -32,8 +32,9 @@ def search_people_by_tech_stack(
     skills = [tech_stack] if isinstance(tech_stack, str) else tech_stack
     skills_str = ",".join(skills)
     
+    company_names = [company.company for company in companies]
     
-    base_query = f"find me {job_role} that worked at multiple companies on the below list that are in {location} that show signs of {skills_str}, {companies}"
+    base_query = f"find me {job_role} that worked at multiple companies on the below list that are in {location} that show signs of {skills_str}, {company_names}"
     
     if not excluded_profiles:
          query = base_query
