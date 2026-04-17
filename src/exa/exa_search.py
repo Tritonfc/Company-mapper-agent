@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from exa_py import Exa
 from pydantic import  ValidationError
+from src.workflows.models import VerificationResult
 from .models import ExaSearchResponse, PersonSearchResult
 
 load_dotenv()
@@ -10,8 +11,10 @@ exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 
 
 def search_people_by_tech_stack(
-    company: str,
+    companies: list[VerificationResult],
     tech_stack: str | list[str],
+    job_role:str,
+    location:str,
     num_results: int = 10,
     excluded_profiles : set[str]|None = None
 ) -> ExaSearchResponse:
@@ -29,8 +32,9 @@ def search_people_by_tech_stack(
     skills = [tech_stack] if isinstance(tech_stack, str) else tech_stack
     skills_str = ",".join(skills)
     
+    company_names = [company.company for company in companies]
     
-    base_query = f"Find me people from {company} who use these skills: {skills_str}"
+    base_query = f"find me {job_role} that worked at multiple companies on the below list that are in {location} that show signs of {skills_str}, {company_names}"
     
     if not excluded_profiles:
          query = base_query

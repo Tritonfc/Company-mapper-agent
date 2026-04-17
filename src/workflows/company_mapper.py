@@ -9,6 +9,7 @@ from src.workflows.models import VerificationResult
 from src.workflows.people_finder import PeopleFinder
 from src.workflows.tech_stack_verifier import TechStackVerifier
 from src.exa.models import PersonSearchResult
+from src.agent.models import CompanyResult
 
 
 class CompanyMapperResult:
@@ -41,6 +42,7 @@ class CompanyMapperResult:
             "Current Company": "entities.0.properties.work_history.0.company.name",
             "Title": "entities.0.properties.work_history.0.title",
             "LinkedIn": "url",
+            "Score": "pointScore",
         })
 
 
@@ -52,31 +54,36 @@ class CompanyMapper:
     2. Find people from companies that couldn't be verified via GitHub
     """
 
-    def __init__(self, on_progress: Callable[[ProgressStage, str, Any], None] | None = None):
+    def __init__(self, job_role:str,location:str, on_progress: Callable[[ProgressStage, str|None, Any], None] | None = None):
         """
         Args:
             on_progress: Optional callback for progress updates.
                          Called with (stage: str, company: str, result: any)
         """
         self.on_progress = on_progress or (lambda *args: None)
+        self.job_role = job_role
+        self.location= location
 
-    def run(self, companies: list[dict]) -> CompanyMapperResult:
+    def run(self, companies: list[CompanyResult]) -> CompanyMapperResult:
         """
         Run the full workflow.
 
         Args:
-            companies: List of dicts with 'name', 'tech', and 'company_url' keys
+            companies: List of CompanyResult models
 
         Returns:
             CompanyMapperResult with verified companies and people found
         """
         verified, failed = self._verify_companies(companies)
-        people = self._find_people(failed)
+        # Combine the list to search for all occurences
+        company_list = verified + failed
+        people = self._find_people(company_list)
+       
 
         return CompanyMapperResult(verified, failed, people)
 
     def _verify_companies(
-        self, companies: list[dict]
+        self, companies: list[CompanyResult]
     ) -> tuple[list[VerificationResult], list[VerificationResult]]:
         """Verify tech stack usage for all companies."""
         verified: list[VerificationResult] = []
@@ -86,15 +93,15 @@ class CompanyMapper:
             verifier = TechStackVerifier(client)
 
             for company in companies:
-                self.on_progress(ProgressStage.VERIFYING, company["name"], None)
+                self.on_progress(ProgressStage.VERIFYING, company.name, None)
 
                 result = verifier.verify(
-                    company["name"],
-                    company["company_url"],
-                    company["tech"],
+                    company.name,
+                    company.company_url,
+                    company.tech,
                 )
 
-                self.on_progress(ProgressStage.VERIFIED, company["name"], result)
+                self.on_progress(ProgressStage.VERIFIED, company.name, result)
 
                 if result.status == "verified":
                     verified.append(result)
@@ -104,18 +111,19 @@ class CompanyMapper:
         return verified, failed
 
     def _find_people(
-        self, failed_results: list[VerificationResult]
+        self, companies: list[VerificationResult],
     ) -> list[PersonSearchResult]:
         """Find people from companies that failed verification."""
         all_people: list[PersonSearchResult] = []
+        
+        company_names = [company.company for company in companies]
 
-        for result in failed_results:
-            self.on_progress(ProgressStage.FINDING_PEOPLE, result.company, None)
+        self.on_progress(ProgressStage.FINDING_PEOPLE, None, None)
 
-            finder = PeopleFinder(result.company, result.tech)
-            people = finder.run()
+        finder = PeopleFinder(companies= companies, tech_stack= companies[0].tech,job_role = self.job_role, location= self.location)
+        people = finder.run()
 
-            self.on_progress(ProgressStage.FOUND_PEOPLE, result.company, len(people))
-            all_people.extend(people)
+        self.on_progress(ProgressStage.FOUND_PEOPLE, None, len(people))
+        all_people.extend(people)
 
         return all_people

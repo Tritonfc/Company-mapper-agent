@@ -1,6 +1,14 @@
 from pydantic import BaseModel, Field
 
 
+class CompanyResult(BaseModel):
+    """A company to search for/verify."""
+
+    name: str = Field(description="Company name")
+    tech: list[str] = Field(description="Technologies to look for")
+    company_url: str = Field(description="Company website URL")
+
+
 class GithubNameResult(BaseModel):
     """Result of searching for a company's GitHub account."""
 

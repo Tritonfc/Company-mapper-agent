@@ -4,8 +4,15 @@ import logging
 from dotenv import load_dotenv
 
 from src.sumble.models import JobSearchCriteria
+from src.agent.models import CompanyResult
 
 load_dotenv()
+
+logging.basicConfig(
+    format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG
+)
 
 BASE_URL = "https://api.sumble.com/v5"
 token = os.getenv("SUMBLE_API_KEY")
@@ -43,14 +50,6 @@ def find_organizations(
         body["order_by_column"] = order_by_column
     if order_by_direction:
         body["order_by_direction"] = order_by_direction
-        
-        
-    logging.basicConfig(
-    format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG
-)
-
 
     response = httpx.post(
         url=f"{BASE_URL}/organizations/find",
@@ -64,7 +63,7 @@ def find_organizations(
     return response.json()
 
 
-def search_companies(criteria: JobSearchCriteria, limit: int = 20) -> list[dict]:
+def search_companies(criteria: JobSearchCriteria, limit: int = 20) -> list[CompanyResult]:
     """
     Search for companies using JobSearchCriteria.
 
@@ -73,8 +72,7 @@ def search_companies(criteria: JobSearchCriteria, limit: int = 20) -> list[dict]
         limit: Max number of results
 
     Returns:
-        List of companies formatted for CompanyMapper:
-        [{"name": str, "tech": list[str], "company_url": str}, ...]
+        List of CompanyResult models
     """
     query_filter = criteria.to_sumble_filter()  # Using simple filter instead of advanced query
     response = find_organizations(
@@ -85,10 +83,10 @@ def search_companies(criteria: JobSearchCriteria, limit: int = 20) -> list[dict]
 
     companies = []
     for org in response.get("organizations", []):
-        companies.append({
-            "name": org.get("name", ""),
-            "tech": criteria.tech,
-            "company_url": org.get("website", org.get("url", "")),
-        })
+        companies.append(CompanyResult(
+            name=org.get("name", ""),
+            tech=criteria.tech,
+            company_url=org.get("website", org.get("url", "")),
+        ))
 
     return companies

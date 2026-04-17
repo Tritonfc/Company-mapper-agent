@@ -61,16 +61,19 @@ class TechStackVerifier:
 
     def _search_by_language(self) -> VerificationResult | None:
         """Step 2: Search repos by language."""
-        results = self.client.search_repos_by_language(
+        try:
+            results = self.client.search_repos_by_language(
             self.context["org"],
             self.context["tech"],
-        )
-        self.context["language_results"] = results
+            )
+            self.context["language_results"] = results
 
-        if self.detector.evaluate_language_search(results) == SignalStrength.STRONG:
-            return self._success(results)
+            if self.detector.evaluate_language_search(results) == SignalStrength.STRONG:
+                return self._success(results)
 
-        return None
+            return None
+        except Exception:
+            return None
 
     def _search_by_keyword(self) -> VerificationResult | None:
         """Step 3: Search repos by keyword."""
@@ -87,18 +90,22 @@ class TechStackVerifier:
 
     def _deep_dive(self) -> VerificationResult | None:
         """Step 4: Deep dive into top repos."""
-        repos = self.context["keyword_results"].items[:self.max_deep_dive_repos]
+        
+        try:
+            repos = self.context["keyword_results"].items[:self.max_deep_dive_repos]
 
-        for repo in repos:
-            commits = self.client.get_commits(self.context["org"], repo.name)
-            prs = self.client.get_pull_requests(self.context["org"], repo.name, state="all")
+            for repo in repos:
+                commits = self.client.get_commits(self.context["org"], repo.name)
+                prs = self.client.get_pull_requests(self.context["org"], repo.name, state="all")
 
             for tech in self.context["tech"]:
                 signal = self.detector.evaluate_repo_deep_dive(repo, commits, prs, tech)
                 if signal == SignalStrength.STRONG:
                     return self._success_single(repo)
 
-        return None
+            return None
+        except Exception:
+            return None
 
     def _success(self, results: RepoSearchResults) -> VerificationResult:
         """Build successful verification result."""
