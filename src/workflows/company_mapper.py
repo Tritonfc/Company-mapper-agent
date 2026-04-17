@@ -41,6 +41,7 @@ class CompanyMapperResult:
             "Current Company": "entities.0.properties.work_history.0.company.name",
             "Title": "entities.0.properties.work_history.0.title",
             "LinkedIn": "url",
+            "Score": "pointScore",
         })
 
 
@@ -74,7 +75,7 @@ class CompanyMapper:
         """
         verified, failed = self._verify_companies(companies)
         # Combine the list to search for all occurences
-        company_list:list[VerificationResult] = verified.extend(failed)
+        company_list = verified + failed
         people = self._find_people(company_list)
        
 
@@ -118,7 +119,7 @@ class CompanyMapper:
 
         self.on_progress(ProgressStage.FINDING_PEOPLE, None, None)
 
-        finder = PeopleFinder(companies= company_names, tech_stack= companies[0].tech,job_role = self.job_role, location= self.location)
+        finder = PeopleFinder(companies= companies, tech_stack= companies[0].tech,job_role = self.job_role, location= self.location)
         people = finder.run()
 
         self.on_progress(ProgressStage.FOUND_PEOPLE, None, len(people))

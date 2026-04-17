@@ -7,6 +7,12 @@ from src.sumble.models import JobSearchCriteria
 
 load_dotenv()
 
+logging.basicConfig(
+    format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG
+)
+
 BASE_URL = "https://api.sumble.com/v5"
 token = os.getenv("SUMBLE_API_KEY")
 
@@ -43,14 +49,6 @@ def find_organizations(
         body["order_by_column"] = order_by_column
     if order_by_direction:
         body["order_by_direction"] = order_by_direction
-        
-        
-    logging.basicConfig(
-    format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG
-)
-
 
     response = httpx.post(
         url=f"{BASE_URL}/organizations/find",

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from src.exa.models import PersonSearchResult
 from src.github.models import Repository
 from src.github.signal_detector import SignalStrength
 
@@ -15,3 +15,8 @@ class VerificationResult(BaseModel):
     matching_repos_count: int = 0
     repos: list[Repository] = Field(default_factory=list)
     reason: str | None = None
+    
+    
+    
+class RankedPersonResult(PersonSearchResult):
+    pointScore:float

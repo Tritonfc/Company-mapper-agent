@@ -104,7 +104,7 @@ if st.button("Run", type="primary", disabled=not form_ready):
                 # Step 4: Run CompanyMapper workflow
                 progress_container = st.empty()
 
-                def update_progress(stage: ProgressStage, company: str, result):
+                def update_progress(stage: ProgressStage, company: str|None, result):
                     if stage == ProgressStage.VERIFYING:
                         progress_container.info(f"Verifying: {company}...")
                     elif stage == ProgressStage.VERIFIED:
@@ -115,7 +115,7 @@ if st.button("Run", type="primary", disabled=not form_ready):
                     elif stage == ProgressStage.FOUND_PEOPLE:
                         progress_container.info(f"Found {result} people at {company}")
 
-                mapper = CompanyMapper(on_progress=update_progress)
+                mapper = CompanyMapper(job_role=job_role, location=country, on_progress=update_progress)
 
                 with st.spinner("Running verification workflow..."):
                     result = mapper.run(companies)
@@ -143,7 +143,7 @@ if st.button("Run", type="primary", disabled=not form_ready):
         # CSV flow - existing workflow
         progress_container = st.empty()
 
-        def update_progress(stage: ProgressStage, company: str, result):
+        def update_progress(stage: ProgressStage, company: str|None, result):
             if stage == ProgressStage.VERIFYING:
                 progress_container.info(f"Verifying: {company}...")
             elif stage == ProgressStage.VERIFIED:
@@ -154,7 +154,7 @@ if st.button("Run", type="primary", disabled=not form_ready):
             elif stage == ProgressStage.FOUND_PEOPLE:
                 progress_container.info(f"Found {result} people at {company}")
 
-        mapper = CompanyMapper(on_progress=update_progress)
+        mapper = CompanyMapper(job_role="", location="", on_progress=update_progress)
 
         with st.spinner("Running workflow..."):
             result = mapper.run(companies)

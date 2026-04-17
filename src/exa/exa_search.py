@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from exa_py import Exa
 from pydantic import  ValidationError
+from src.workflows.models import VerificationResult
 from .models import ExaSearchResponse, PersonSearchResult
 
 load_dotenv()
@@ -10,7 +11,7 @@ exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 
 
 def search_people_by_tech_stack(
-    companies: list[str],
+    companies: list[VerificationResult],
     tech_stack: str | list[str],
     job_role:str,
     location:str,

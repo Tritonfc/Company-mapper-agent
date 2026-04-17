@@ -2,6 +2,9 @@ from pydantic import BaseModel, Field
 
 from src.exa.exa_search import search_people_by_tech_stack
 from src.exa.models import PersonSearchResult
+from src.workflows.models import VerificationResult
+from src.workflows.models import RankedPersonResult
+from src.workflows.ranker import score_person, rank
 
 
 class PeopleFinderConfig(BaseModel):
@@ -21,7 +24,7 @@ class PeopleFinder:
 
     def __init__(
         self,
-        companies: list[str],
+        companies: list[VerificationResult],
         tech_stack: str | list[str],
         job_role:str,
         location:str,
@@ -35,7 +38,7 @@ class PeopleFinder:
         self.results: list[PersonSearchResult] = []
         self._seen_people: set[str] = set()
 
-    def run(self) -> list[PersonSearchResult]:
+    def run(self) -> list[RankedPersonResult]:
         """
         Execute the people finding workflow.
 
@@ -49,9 +52,9 @@ class PeopleFinder:
 
             if len(self.results) >= self.config.min_results:
                 break
-        ranked_names = rank_names()
+        ranked_names = self.rank_candidates()
 
-        return self.results
+        return ranked_names
 
     def _search(self) -> list[PersonSearchResult]:
         """Run a single search and accumulate unique results."""
@@ -80,3 +83,14 @@ class PeopleFinder:
         if result.entities:
             return result.entities[0].properties.name
         return None
+    
+    def rank_candidates(self):
+        ranked_candidates = []
+        for candidate in self.results:
+            ranked_candidate = score_person(candidate,self.companies)
+            ranked_candidates.append(ranked_candidate)
+        sorted_candidates = rank(ranked_candidates)
+        
+        return sorted_candidates
+            
+        
