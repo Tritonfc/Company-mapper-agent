@@ -10,6 +10,7 @@ from src.workflows.company_mapper import CompanyMapper
 from src.sumble.models import JobSearchCriteria
 from src.sumble.client import search_companies
 from src.agent.job_description_parser import parse_job_description
+from src.agent.models import CompanyResult
 
 
 st.set_page_config(page_title="Company Mapper", layout="wide")
@@ -59,7 +60,15 @@ else:
         df = pd.read_csv(uploaded_file)
         st.dataframe(df, use_container_width=True)
 
-        companies = df.to_dict("records")
+        # Convert CSV rows to CompanyResult models
+        companies = [
+            CompanyResult(
+                name=row.get("name", ""),
+                tech=row.get("tech", "").split(",") if isinstance(row.get("tech"), str) else row.get("tech", []),
+                company_url=row.get("company_url", ""),
+            )
+            for row in df.to_dict("records")
+        ]
         form_ready = bool(companies)
     else:
         companies = []

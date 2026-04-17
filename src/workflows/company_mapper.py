@@ -9,6 +9,7 @@ from src.workflows.models import VerificationResult
 from src.workflows.people_finder import PeopleFinder
 from src.workflows.tech_stack_verifier import TechStackVerifier
 from src.exa.models import PersonSearchResult
+from src.agent.models import CompanyResult
 
 
 class CompanyMapperResult:
@@ -63,12 +64,12 @@ class CompanyMapper:
         self.job_role = job_role
         self.location= location
 
-    def run(self, companies: list[dict]) -> CompanyMapperResult:
+    def run(self, companies: list[CompanyResult]) -> CompanyMapperResult:
         """
         Run the full workflow.
 
         Args:
-            companies: List of dicts with 'name', 'tech', and 'company_url' keys
+            companies: List of CompanyResult models
 
         Returns:
             CompanyMapperResult with verified companies and people found
@@ -82,7 +83,7 @@ class CompanyMapper:
         return CompanyMapperResult(verified, failed, people)
 
     def _verify_companies(
-        self, companies: list[dict]
+        self, companies: list[CompanyResult]
     ) -> tuple[list[VerificationResult], list[VerificationResult]]:
         """Verify tech stack usage for all companies."""
         verified: list[VerificationResult] = []
@@ -92,15 +93,15 @@ class CompanyMapper:
             verifier = TechStackVerifier(client)
 
             for company in companies:
-                self.on_progress(ProgressStage.VERIFYING, company["name"], None)
+                self.on_progress(ProgressStage.VERIFYING, company.name, None)
 
                 result = verifier.verify(
-                    company["name"],
-                    company["company_url"],
-                    company["tech"],
+                    company.name,
+                    company.company_url,
+                    company.tech,
                 )
 
-                self.on_progress(ProgressStage.VERIFIED, company["name"], result)
+                self.on_progress(ProgressStage.VERIFIED, company.name, result)
 
                 if result.status == "verified":
                     verified.append(result)
