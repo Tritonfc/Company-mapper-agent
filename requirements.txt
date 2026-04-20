@@ -5,7 +5,6 @@ ads==0.12.7
 aerospike_vector_search==4.2.0
 ain==0.0.2
 aiodns==4.0.0
-airbyte_cdk==7.17.2
 aleph_alpha_client==11.5.1
 alibabacloud_ha3engine_vector==1.1.18
 alibabacloud_tea_util==0.3.14
@@ -344,7 +343,6 @@ xinference_client==2.5.0
 xlrd==2.0.2
 xlsxwriter==3.2.9
 xmlrpclib==1.0.1
-xmltodict==1.0.4
 xxhash==3.6.0
 yfinance==1.3.0
 youtube_search==2.2.0
